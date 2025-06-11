@@ -26,10 +26,10 @@ export default function HomePage() {
     const storedLinkedinUrl = localStorage.getItem("networqr_linkedin");
     const storedPhoneNumber = localStorage.getItem("networqr_phone");
 
-    if (storedFullName && storedLinkedinUrl && storedPhoneNumber) {
+    if (storedFullName && storedLinkedinUrl) { // Phone number is now optional
       setFullName(storedFullName);
       setLinkedinUrl(storedLinkedinUrl);
-      setPhoneNumber(storedPhoneNumber);
+      setPhoneNumber(storedPhoneNumber || ""); // Handle case where phone might be null/undefined
       setIsFormOpen(false); // Collapse form if values exist
     }
   }, [])
@@ -38,8 +38,10 @@ export default function HomePage() {
     const params = new URLSearchParams({
       name: fullName,
       linkedin: linkedinUrl,
-      phone: phoneNumber,
     })
+    if (phoneNumber) { // Only add phone if it exists
+      params.append("phone", phoneNumber)
+    }
     router.push(`/my-qr?${params.toString()}`)
   }
 
@@ -49,19 +51,21 @@ export default function HomePage() {
     // Cache values in local storage
     localStorage.setItem("networqr_fullname", fullName)
     localStorage.setItem("networqr_linkedin", linkedinUrl)
-    localStorage.setItem("networqr_phone", phoneNumber)
+    localStorage.setItem("networqr_phone", phoneNumber) // Store even if empty
 
     // Encode values as query params and redirect
     const params = new URLSearchParams({
       name: fullName,
       linkedin: linkedinUrl,
-      phone: phoneNumber,
     })
+    if (phoneNumber) { // Only add phone if it exists
+      params.append("phone", phoneNumber)
+    }
 
     router.push(`/my-qr?${params.toString()}`)
   }
 
-  const hasStoredValues = fullName && linkedinUrl && phoneNumber;
+  const hasStoredValues = fullName && linkedinUrl; // Phone number is now optional for this check
 
   return (
     <div className="min-h-screen bg-slate-800 flex flex-col">
@@ -90,16 +94,25 @@ export default function HomePage() {
                   onClick={handleUseStored}
                 >
                   <h3 className="text-white font-semibold mb-2">Saved QR Details:</h3>
-                  <p className="text-slate-300 text-sm">
-                    <span className="font-medium">Name:</span> {fullName}
-                  </p>
-                  <p className="text-slate-300 text-sm">
-                    <span className="font-medium">LinkedIn:</span> {linkedinUrl}
-                  </p>
-                  <p className="text-slate-300 text-sm">
-                    <span className="font-medium">Phone:</span> {phoneNumber}
-                  </p>
-                  <p className="text-purple-400 text-sm mt-2">Click to generate QR with these details</p>
+                  <table className="w-full text-slate-300 text-sm">
+                    <tbody>
+                      <tr>
+                        <td className="font-medium">Name:</td>
+                        <td className="text-right">{fullName}</td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium">LinkedIn:</td>
+                        <td className="text-right">{linkedinUrl}</td>
+                      </tr>
+                      {phoneNumber && (
+                        <tr>
+                          <td className="font-medium">Phone:</td>
+                          <td className="text-right">{phoneNumber}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <p className="text-purple-400 text-sm mt-2">Open QR</p>
                 </div>
               ) : null}
 
@@ -144,7 +157,7 @@ export default function HomePage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-slate-200 text-sm">
-                        Phone Number
+                        Phone Number (Optional)
                       </Label>
                       <PhoneInput
                         id="phone"

@@ -44,21 +44,24 @@ function MyQRContent() {
       url: linkedinUrl,
       qr: qrCodes.linkedin,
       color: "#0A66C2",
+      icon: <Linkedin className="w-4 h-4" />,
     },
-    {
-      title: "Phone Number",
-      url: phoneNumber,
-      qr: qrCodes.phone,
-      color: "#059669",
-    },
+    ...(phoneNumber
+      ? [
+          {
+            title: "Phone Number",
+            url: phoneNumber,
+            qr: qrCodes.phone,
+            color: "#059669",
+            icon: <Phone className="w-4 h-4" />,
+          },
+        ]
+      : []),
   ]
 
   useEffect(() => {
     const generateQRCodes = async () => {
       try {
-        // Format phone number for tel: protocol
-        const telPhone = `tel:+${phoneNumber.replace(/\D/g, "")}`
-
         const linkedinQR = await QRCode.toDataURL(linkedinUrl, {
           width: 280,
           margin: 2,
@@ -68,14 +71,19 @@ function MyQRContent() {
           },
         })
 
-        const phoneQR = await QRCode.toDataURL(telPhone, {
-          width: 280,
-          margin: 2,
-          color: {
-            dark: "#000000", // Black for the QR code
-            light: "#FFFFFF", // White for the background
-          },
-        })
+        let phoneQR = ""
+        if (phoneNumber) {
+          // Format phone number for tel: protocol
+          const telPhone = `tel:+${phoneNumber.replace(/\D/g, "")}`
+          phoneQR = await QRCode.toDataURL(telPhone, {
+            width: 280,
+            margin: 2,
+            color: {
+              dark: "#000000", // Black for the QR code
+              light: "#FFFFFF", // White for the background
+            },
+          })
+        }
 
         setQrCodes({
           linkedin: linkedinQR,
@@ -86,7 +94,7 @@ function MyQRContent() {
       }
     }
 
-    if (linkedinUrl && phoneNumber) {
+    if (linkedinUrl) { // Only require linkedinUrl to generate QRs
       generateQRCodes()
     }
 
@@ -98,9 +106,9 @@ function MyQRContent() {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
     }
-  }, [linkedinUrl, phoneNumber])
+  }, [linkedinUrl, phoneNumber]) // Add phoneNumber to dependency array
 
-  const currentQRData = qrData[currentQR]
+  const currentQRData = qrData[currentQR] || qrData[0] // Ensure a default if phone is not present and currentQR is out of bounds
 
   return (
     <div className="min-h-screen bg-slate-800 flex flex-col">
@@ -130,15 +138,13 @@ function MyQRContent() {
 
           {/* QR Code Tabs */}
           <Tabs value={currentQRData.title} onValueChange={(value) => setCurrentQR(qrData.findIndex(qr => qr.title === value))} className="flex flex-col items-center">
-            <TabsList className="grid w-full grid-cols-2 mb-4 bg-slate-700 border-slate-600">
-              <TabsTrigger value="LinkedIn Profile" className="flex items-center space-x-2 text-slate-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
-                <Linkedin className="w-4 h-4" />
-                <span>LinkedIn</span>
-              </TabsTrigger>
-              <TabsTrigger value="Phone Number" className="flex items-center space-x-2 text-slate-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
-                <Phone className="w-4 h-4" />
-                <span>Phone</span>
-              </TabsTrigger>
+            <TabsList className={`grid w-full mb-4 bg-slate-700 border-slate-600 ${phoneNumber ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {qrData.map((qrItem) => (
+                <TabsTrigger key={qrItem.title} value={qrItem.title} className="flex items-center space-x-2 text-slate-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                  {qrItem.icon}
+                  <span>{qrItem.title.split(' ')[0]}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {qrData.map((qrItem, index) => (

@@ -204,45 +204,47 @@ function MyQRContent() {
         </div>
 
         {/* QR Code Carousel */}
-        <div className="relative flex items-center justify-center mb-4">
+        <div className="flex items-center justify-center mb-4 space-x-4">
           <Button
             variant="ghost"
             onClick={() => setCurrentQR(currentQR === 0 ? qrData.length - 1 : currentQR - 1)}
-            className="absolute left-0 z-10 text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 px-4 py-2"
+            className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
             disabled={currentQR === 0}
           >
-            <ChevronLeft className="w-10 h-10" />
+            <ChevronLeft className="w-8 h-8" />
           </Button>
 
-          <Card className="bg-slate-700 border-slate-600 w-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-center text-lg">{currentQRData.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              {currentQRData.qr ? (
-                <div className="bg-white p-4 rounded-xl mb-4">
-                  <img
-                    src={currentQRData.qr || "/placeholder.svg"}
-                    alt={`${currentQRData.title} QR Code`}
-                    className="w-70 h-70"
-                  />
-                </div>
-              ) : (
-                <div className="w-70 h-70 bg-slate-600 rounded-xl flex items-center justify-center mb-4">
-                  <span className="text-slate-400 text-sm">Generating...</span>
-                </div>
-              )}
-              <p className="text-xs text-slate-400 text-center break-all px-2">{currentQRData.url}</p>
-            </CardContent>
-          </Card>
+          <div className="flex-1 max-w-sm">
+            <Card className="bg-slate-700 border-slate-600">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-center text-lg">{currentQRData.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                {currentQRData.qr ? (
+                  <div className="bg-white p-4 rounded-xl mb-4 aspect-square flex items-center justify-center">
+                    <img
+                      src={currentQRData.qr || "/placeholder.svg"}
+                      alt={`${currentQRData.title} QR Code`}
+                      className="w-full h-full max-w-[280px] max-h-[280px] object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full aspect-square max-w-[280px] bg-slate-600 rounded-xl flex items-center justify-center mb-4">
+                    <span className="text-slate-400 text-sm">Generating...</span>
+                  </div>
+                )}
+                <p className="text-xs text-slate-400 text-center break-all px-2">{currentQRData.url}</p>
+              </CardContent>
+            </Card>
+          </div>
 
           <Button
             variant="ghost"
             onClick={() => setCurrentQR(currentQR === qrData.length - 1 ? 0 : currentQR + 1)}
-            className="absolute right-0 z-10 text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 px-4 py-2"
+            className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
             disabled={currentQR === qrData.length - 1}
           >
-            <ChevronRight className="w-10 h-10" />
+            <ChevronRight className="w-8 h-8" />
           </Button>
         </div>
 

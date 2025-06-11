@@ -4,7 +4,8 @@ import { useEffect, useState, Suspense, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, Plus, Linkedin, Phone } from "lucide-react"
 import QRCode from "qrcode"
 import { setCookie, getCookie } from "cookies-next"
 import Footer from "@/components/Footer"
@@ -33,11 +34,6 @@ function MyQRContent() {
     phone: string
   }>({ linkedin: "", phone: "" })
   const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null)
-  const [showInstallPrompt, setShowInstallPrompt] = useState<boolean>(() => {
-    const installDismissed = getCookie("installDismissed")
-    return !installDismissed
-  })
-
   const fullName = searchParams.get("name") || ""
   const linkedinUrl = searchParams.get("linkedin") || ""
   const phoneNumber = searchParams.get("phone") || ""
@@ -95,12 +91,6 @@ function MyQRContent() {
     }
 
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
-      e.preventDefault()
-      deferredPrompt.current = e
-      const installDismissed = getCookie("installDismissed")
-      if (!installDismissed) {
-        setShowInstallPrompt(true)
-      }
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
@@ -109,53 +99,6 @@ function MyQRContent() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
     }
   }, [linkedinUrl, phoneNumber])
-
-  const handleAddToHomeScreen = async () => {
-    if (deferredPrompt.current) {
-      deferredPrompt.current.prompt()
-      const { outcome } = await deferredPrompt.current.userChoice
-      if (outcome === "accepted") {
-        console.log("User accepted the A2HS prompt")
-      } else {
-        console.log("User dismissed the A2HS prompt")
-      }
-      deferredPrompt.current = null
-      setShowInstallPrompt(false)
-    } else {
-      // Fallback for browsers that don't support beforeinstallprompt or if it's already been shown
-      if (navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome")) {
-        alert('To add to home screen:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"')
-      } else {
-        alert('To add to home screen:\n1. Tap the menu (⋮)\n2. Tap "Add to Home screen" or "Install app"')
-      }
-    }
-  }
-
-  const handleDismissInstallPrompt = () => {
-    setCookie("installDismissed", "true", { maxAge: 60 * 60 * 24 * 365 }) // 1 year
-    setShowInstallPrompt(false)
-  }
-
-  if (!fullName || !linkedinUrl || !phoneNumber) {
-    return (
-      <div className="min-h-screen bg-slate-800 flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm bg-slate-700 border-slate-600">
-          <CardContent className="pt-6">
-            <p className="text-center text-slate-300 mb-4 text-sm">
-              No contact information found. Please go back and fill out the form.
-            </p>
-            <Button
-              onClick={() => router.push("/")}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Form
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   const currentQRData = qrData[currentQR]
 
@@ -185,83 +128,45 @@ function MyQRContent() {
             <p className="text-slate-400 text-sm">Your personalized QR codes</p>
           </div>
 
-          {/* Add to Home Screen Button */}
-          <div className="flex justify-center mb-4">
-            <Button
-              onClick={handleAddToHomeScreen}
-              className={`flex-1 ${deferredPrompt.current && showInstallPrompt ? "mr-2" : ""} bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-3`}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add to Home Screen
-            </Button>
-            {deferredPrompt.current && showInstallPrompt && (
-              <Button
-                variant="outline"
-                onClick={handleDismissInstallPrompt}
-                className="flex-1 bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white font-medium py-3"
-              >
-                No Thanks
-              </Button>
-            )}
-          </div>
+          {/* QR Code Tabs */}
+          <Tabs value={currentQRData.title} onValueChange={(value) => setCurrentQR(qrData.findIndex(qr => qr.title === value))} className="flex flex-col items-center">
+            <TabsList className="grid w-full grid-cols-2 mb-4 bg-slate-700 border-slate-600">
+              <TabsTrigger value="LinkedIn Profile" className="flex items-center space-x-2 text-slate-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                <Linkedin className="w-4 h-4" />
+                <span>LinkedIn</span>
+              </TabsTrigger>
+              <TabsTrigger value="Phone Number" className="flex items-center space-x-2 text-slate-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                <Phone className="w-4 h-4" />
+                <span>Phone</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* QR Code Carousel */}
-          <div className="flex items-center justify-center mb-4 space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentQR(currentQR === 0 ? qrData.length - 1 : currentQR - 1)}
-              className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
-              disabled={currentQR === 0}
-            >
-              <ChevronLeft className="w-8 h-8" />
-            </Button>
-
-            <div className="flex-1 max-w-sm">
-              <Card className="bg-slate-700 border-slate-600">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-white text-center text-lg">{currentQRData.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center">
-                  {currentQRData.qr ? (
-                    <div className="bg-white p-4 rounded-xl mb-4 aspect-square flex items-center justify-center">
-                      <img
-                        src={currentQRData.qr || "/placeholder.svg"}
-                        alt={`${currentQRData.title} QR Code`}
-                        className="w-full h-full max-w-[280px] max-h-[280px] object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full aspect-square max-w-[280px] bg-slate-600 rounded-xl flex items-center justify-center mb-4">
-                      <span className="text-slate-400 text-sm">Generating...</span>
-                    </div>
-                  )}
-                  <p className="text-xs text-slate-400 text-center break-all px-2">{currentQRData.url}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentQR(currentQR === qrData.length - 1 ? 0 : currentQR + 1)}
-              className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
-              disabled={currentQR === qrData.length - 1}
-            >
-              <ChevronRight className="w-8 h-8" />
-            </Button>
-          </div>
-
-          {/* Navigation Dots */}
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            {qrData.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentQR(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentQR ? "bg-purple-400" : "bg-slate-600"
-                }`}
-              />
+            {qrData.map((qrItem, index) => (
+              <TabsContent key={index} value={qrItem.title} className="w-full max-w-sm">
+                <Card className="bg-slate-700 border-slate-600">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white text-center text-lg">{qrItem.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center">
+                    {qrItem.qr ? (
+                      <div className="bg-white p-4 rounded-xl mb-4 aspect-square flex items-center justify-center">
+                        <img
+                          src={qrItem.qr || "/placeholder.svg"}
+                          alt={`${qrItem.title} QR Code`}
+                          className="w-full h-full max-w-[280px] max-h-[280px] object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-square max-w-[280px] bg-slate-600 rounded-xl flex items-center justify-center mb-4">
+                        <span className="text-slate-400 text-sm">Generating...</span>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-400 text-center break-all px-2">{qrItem.url}</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </div>
       </div>
       <div className="p-4">

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import QRCode from "qrcode"
 import { setCookie, getCookie } from "cookies-next"
+import Footer from "@/components/Footer"
 
 declare global {
   interface WindowEventMap {
@@ -159,122 +160,112 @@ function MyQRContent() {
   const currentQRData = qrData[currentQR]
 
   return (
-    <div className="min-h-screen bg-slate-800 p-4">
-      <div className="max-w-sm mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push("/")}
-            className="text-slate-300 hover:text-white hover:bg-slate-700 p-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="text-center">
-            <h1 className="text-xl font-bold text-white">
-              Networ
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">QR</span>
-            </h1>
-          </div>
-          <div className="w-9" /> {/* Spacer for centering */}
-        </div>
-
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-white mb-1">{fullName}</h2>
-          <p className="text-slate-400 text-sm">Your personalized QR codes</p>
-        </div>
-
-        {/* Add to Home Screen Button */}
-        <div className="flex justify-center mb-4">
-          <Button
-            onClick={handleAddToHomeScreen}
-            className={`flex-1 ${deferredPrompt.current && showInstallPrompt ? "mr-2" : ""} bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-3`}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add to Home Screen
-          </Button>
-          {deferredPrompt.current && showInstallPrompt && (
+    <div className="min-h-screen bg-slate-800 flex flex-col">
+      <div className="flex-1 p-4">
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center justify-between mb-6">
             <Button
-              variant="outline"
-              onClick={handleDismissInstallPrompt}
-              className="flex-1 bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white font-medium py-3"
+              variant="ghost"
+              onClick={() => router.push("/")}
+              className="text-slate-300 hover:text-white hover:bg-slate-700 p-2"
             >
-              No Thanks
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-          )}
-        </div>
-
-        {/* QR Code Carousel */}
-        <div className="flex items-center justify-center mb-4 space-x-4">
-          <Button
-            variant="ghost"
-            onClick={() => setCurrentQR(currentQR === 0 ? qrData.length - 1 : currentQR - 1)}
-            className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
-            disabled={currentQR === 0}
-          >
-            <ChevronLeft className="w-8 h-8" />
-          </Button>
-
-          <div className="flex-1 max-w-sm">
-            <Card className="bg-slate-700 border-slate-600">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white text-center text-lg">{currentQRData.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                {currentQRData.qr ? (
-                  <div className="bg-white p-4 rounded-xl mb-4 aspect-square flex items-center justify-center">
-                    <img
-                      src={currentQRData.qr || "/placeholder.svg"}
-                      alt={`${currentQRData.title} QR Code`}
-                      className="w-full h-full max-w-[280px] max-h-[280px] object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-square max-w-[280px] bg-slate-600 rounded-xl flex items-center justify-center mb-4">
-                    <span className="text-slate-400 text-sm">Generating...</span>
-                  </div>
-                )}
-                <p className="text-xs text-slate-400 text-center break-all px-2">{currentQRData.url}</p>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-white">
+                Networ
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">QR</span>
+              </h1>
+            </div>
+            <div className="w-9" /> {/* Spacer for centering */}
           </div>
 
-          <Button
-            variant="ghost"
-            onClick={() => setCurrentQR(currentQR === qrData.length - 1 ? 0 : currentQR + 1)}
-            className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
-            disabled={currentQR === qrData.length - 1}
-          >
-            <ChevronRight className="w-8 h-8" />
-          </Button>
-        </div>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-white mb-1">{fullName}</h2>
+            <p className="text-slate-400 text-sm">Your personalized QR codes</p>
+          </div>
 
-        {/* Navigation Dots */}
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          {qrData.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentQR(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentQR ? "bg-purple-400" : "bg-slate-600"
-              }`}
-            />
-          ))}
-        </div>
-
-        <footer className="text-center mt-8 text-xs text-slate-500">
-          <div className="font-semibold text-slate-300 mb-1">NetworQR</div>
-          <div>
-            Powered by{" "}
-            <a
-              href="https://atlasprods.com?utm_src=networqr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-purple-400 hover:text-purple-300 underline"
+          {/* Add to Home Screen Button */}
+          <div className="flex justify-center mb-4">
+            <Button
+              onClick={handleAddToHomeScreen}
+              className={`flex-1 ${deferredPrompt.current && showInstallPrompt ? "mr-2" : ""} bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-3`}
             >
-              AtlasProds
-            </a>
+              <Plus className="w-4 h-4 mr-2" />
+              Add to Home Screen
+            </Button>
+            {deferredPrompt.current && showInstallPrompt && (
+              <Button
+                variant="outline"
+                onClick={handleDismissInstallPrompt}
+                className="flex-1 bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white font-medium py-3"
+              >
+                No Thanks
+              </Button>
+            )}
           </div>
-        </footer>
+
+          {/* QR Code Carousel */}
+          <div className="flex items-center justify-center mb-4 space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => setCurrentQR(currentQR === 0 ? qrData.length - 1 : currentQR - 1)}
+              className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
+              disabled={currentQR === 0}
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </Button>
+
+            <div className="flex-1 max-w-sm">
+              <Card className="bg-slate-700 border-slate-600">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-center text-lg">{currentQRData.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center">
+                  {currentQRData.qr ? (
+                    <div className="bg-white p-4 rounded-xl mb-4 aspect-square flex items-center justify-center">
+                      <img
+                        src={currentQRData.qr || "/placeholder.svg"}
+                        alt={`${currentQRData.title} QR Code`}
+                        className="w-full h-full max-w-[280px] max-h-[280px] object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-square max-w-[280px] bg-slate-600 rounded-xl flex items-center justify-center mb-4">
+                      <span className="text-slate-400 text-sm">Generating...</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-400 text-center break-all px-2">{currentQRData.url}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Button
+              variant="ghost"
+              onClick={() => setCurrentQR(currentQR === qrData.length - 1 ? 0 : currentQR + 1)}
+              className="text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 p-2"
+              disabled={currentQR === qrData.length - 1}
+            >
+              <ChevronRight className="w-8 h-8" />
+            </Button>
+          </div>
+
+          {/* Navigation Dots */}
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            {qrData.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentQR(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentQR ? "bg-purple-400" : "bg-slate-600"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <Footer />
       </div>
     </div>
   )
